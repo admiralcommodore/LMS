@@ -1,0 +1,203 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  LayoutDashboard,
+  ClipboardList,
+  FileText,
+  Settings,
+  Menu,
+  LogOut,
+  User,
+  GraduationCap,
+  Users,
+  UserCog,
+  DollarSign,
+  ChevronRight,
+} from 'lucide-react';
+import { ThemeToggle } from '@/components/shared/theme-toggle';
+import { cn } from '@/lib/utils';
+
+const navigation = [
+  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Students', href: '/admin/users/students', icon: Users },
+  { name: 'Staff', href: '/admin/users/staff', icon: UserCog },
+  { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
+  { name: 'Results', href: '/admin/results', icon: FileText },
+  { name: 'Payments', href: '/admin/payments', icon: DollarSign },
+  { name: 'Settings', href: '/admin/settings', icon: Settings },
+];
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
+  const isActivePath = (href: string) => {
+    if (href === '/admin') return pathname === '/admin';
+    return pathname === href || pathname.startsWith(href + '/');
+  };
+
+  if (!mounted) return null;
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-card border-r">
+      <div className="p-6">
+        <Link href="/admin" className="flex items-center gap-3">
+          <div className="bg-primary rounded-lg p-1.5">
+            <GraduationCap className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <div>
+            <span className="text-lg font-bold block leading-none">College LMS</span>
+            <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Admin Portal</span>
+          </div>
+        </Link>
+      </div>
+
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-2">
+        {navigation.map((item) => {
+          const active = isActivePath(item.href);
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              onClick={() => setSidebarOpen(false)}
+              className={cn(
+                'group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
+                active
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <item.icon className={cn('h-5 w-5', active ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground')} />
+                {item.name}
+              </div>
+              {active && <ChevronRight className="h-4 w-4 opacity-70" />}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="p-4 mt-auto border-t">
+        <div className="bg-muted/50 rounded-2xl p-4 flex items-center gap-3">
+           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
+              {user?.name?.charAt(0) || 'A'}
+           </div>
+           <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate">{user?.name || 'Administrator'}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{user?.email || 'admin@college.ac.tz'}</p>
+           </div>
+           <Button variant="ghost" size="icon" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
+              <LogOut className="h-4 w-4" />
+           </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50/50 flex">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block w-72 h-screen sticky top-0 shrink-0 shadow-sm z-40">
+        <SidebarContent />
+      </aside>
+
+      {/* Main Column */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {/* Header */}
+        <header className="h-16 sticky top-0 z-30 flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-md border-b">
+          <div className="flex items-center gap-4">
+            {/* Mobile Sidebar Trigger */}
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild className="lg:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 border-none w-72">
+                <SidebarContent />
+              </SheetContent>
+            </Sheet>
+            
+            <div className="flex items-center gap-2">
+               <span className="text-sm font-medium text-muted-foreground hidden lg:block">Admin</span>
+               <ChevronRight className="h-4 w-4 text-muted-foreground/30 hidden lg:block" />
+               <h2 className="text-sm font-semibold capitalize">
+                {pathname.split('/').pop()?.replace(/-/g, ' ') || 'Dashboard'}
+               </h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full ring-2 ring-primary/5">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                    {user?.name?.charAt(0) || 'A'}
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mt-2">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/profile">
+                    <User className="mr-2 h-4 w-4" /> Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/settings">
+                    <Settings className="mr-2 h-4 w-4" /> Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        {/* Dynamic Content */}
+        <main className="flex-1 p-4 lg:p-8">
+          {children}
+        </main>
+
+        <footer className="p-6 border-t bg-card/50 text-center">
+          <p className="text-xs text-muted-foreground italic">
+            &copy; 2026 College Student Management System (Academic Admin Panel)
+          </p>
+        </footer>
+      </div>
+    </div>
+  );
+}
