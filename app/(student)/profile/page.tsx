@@ -52,8 +52,6 @@ import {
   Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CertificatesList } from '@/components/student/certificate-generator';
-import { AchievementBadgesList, AchievementType } from '@/components/student/course-badges';
 
 export default function ProfilePage() {
   const {
@@ -478,10 +476,10 @@ export default function ProfilePage() {
               <CardDescription>Badges you've earned through your learning journey</CardDescription>
             </CardHeader>
             <CardContent>
-              <AchievementBadgesList 
-                achievements={['first_course', 'dedicated'] as AchievementType[]} 
-                showLocked={true} 
-              />
+              <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-lg">
+                <Award className="h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">No achievements yet. Keep learning to earn badges!</p>
+              </div>
             </CardContent>
           </Card>
 
@@ -492,7 +490,10 @@ export default function ProfilePage() {
               <CardDescription>Your earned course certificates</CardDescription>
             </CardHeader>
             <CardContent>
-              <CertificatesList />
+              <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed rounded-lg">
+                <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">No certificates earned yet. Complete courses to view them here.</p>
+              </div>
             </CardContent>
           </Card>
 
